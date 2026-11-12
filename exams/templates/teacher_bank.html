@@ -1,0 +1,60 @@
+{% extends "panel_base.html" %}
+{% block head %}{% include "_katex.html" %}{% endblock %}
+{% block content %}
+<div class="ph"><h1>بانک سؤال <span class="muted">({{ total }} سؤال)</span></h1>
+  <div><a class="btn sm" href="{% url 'teacher_question_new' %}{% if target %}?exam={{ target.pk }}{% endif %}">+ سؤال جدید</a></div></div>
+{% if target %}<p class="msg">در حال انتخاب سؤال برای آزمون «{{ target.title }}»: سؤال‌ها را تیک بزنید و پایین صفحه «افزودن به آزمون» را بزنید. <a href="{% url 'teacher_exam_edit' target.pk %}">بازگشت به آزمون</a></p>{% endif %}
+
+<section class="card">
+  <div class="chips big"><b class="muted">دسته‌بندی:</b>
+    <a class="chip{% if not cat and not nocat %} on{% endif %}" href="?{% if target %}exam={{ target.pk }}{% endif %}">همه</a>
+    {% for c in cats %}<a class="cat{% if cat.pk == c.pk %} on{% endif %}" style="--h:{{ c.hue }}" href="?cat={{ c.pk }}{% if target %}&exam={{ target.pk }}{% endif %}">{{ c.name }} <small>{{ c.n }}</small></a>{% endfor %}
+    <a class="chip{% if nocat %} on{% endif %}" href="?cat=none{% if target %}&exam={{ target.pk }}{% endif %}">بدون دسته‌بندی <small>{{ uncat }}</small></a></div>
+  <form method="get" class="toolbar" style="margin:12px 0 0">
+    {% if cat %}<input type="hidden" name="cat" value="{{ cat.pk }}">{% elif nocat %}<input type="hidden" name="cat" value="none">{% endif %}
+    {% if target %}<input type="hidden" name="exam" value="{{ target.pk }}">{% endif %}
+    <input name="q" value="{{ text }}" type="search" placeholder="جست‌وجو در متن سؤال یا تگ‌ها…" aria-label="جست‌وجو" style="min-width:240px">
+    <select name="tag" aria-label="تگ"><option value="">همهٔ تگ‌ها</option>{% for t in tags %}<option value="{{ t.pk }}"{% if tag.pk == t.pk %} selected{% endif %}>{{ t.name }}</option>{% endfor %}</select>
+    <button class="btn sm line">اعمال فیلتر</button>
+    {% if cat or nocat or tag or text %}<a class="muted" href="?{% if target %}exam={{ target.pk }}{% endif %}">حذف فیلترها</a>{% endif %}
+    <span class="muted">{{ found }} سؤال یافت شد</span></div>
+  <details class="catmgr"><summary>مدیریت دسته‌بندی‌ها</summary>
+    <div class="chips" style="margin:10px 0">{% for c in cats %}
+      <form method="post" action="{% url 'teacher_categories' %}" class="inl" onsubmit="return confirm('دسته‌بندی «{{ c.name }}» حذف شود؟ سؤال‌هایش در بانک می‌مانند.')">{% csrf_token %}<input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{ c.pk }}">
+        <span class="cat" style="--h:{{ c.hue }}">{{ c.name }}<button class="x" aria-label="حذف {{ c.name }}">×</button></span></form>{% endfor %}</div>
+    <form method="post" action="{% url 'teacher_categories' %}" class="toolbar">{% csrf_token %}<input type="hidden" name="action" value="add"><input name="name" placeholder="دسته‌بندی جدید…" maxlength="80" required><button class="btn sm">افزودن</button></form></details>
+</section>
+
+<form method="post" id="bulk">{% csrf_token %}<input type="hidden" name="back" value="{{ back }}">
+  <div class="selbar"><label><input type="checkbox" id="all"> انتخاب همهٔ این صفحه</label><span class="muted"><span id="sel">0</span> سؤال انتخاب شده</span></div>
+  {% for q in page %}
+  <article class="card qcard">
+    <header><input type="checkbox" class="pick" name="q" value="{{ q.pk }}" aria-label="انتخاب سؤال {{ q.pk }}">
+      <span class="idx">{{ page.start_index|add:forloop.counter0 }}</span>
+      <div class="chips">{% for c in q.categories.all %}<span class="cat" style="--h:{{ c.hue }}">{{ c.name }}</span>{% empty %}<span class="chip muted">بدون دسته‌بندی</span>{% endfor %}
+        {% for t in q.tags.all %}<span class="tag">#{{ t.name }}</span>{% endfor %}</div>
+      <a class="btn sm line" href="{% url 'teacher_question_edit' q.pk %}">ویرایش</a></header>
+    <div class="qtext">{{ q.text }}</div>
+    <ol class="qopts">{% if q.option1 %}<li{% if q.correct == 1 %} class="ok"{% endif %}>{{ q.option1 }}</li>{% endif %}{% if q.option2 %}<li{% if q.correct == 2 %} class="ok"{% endif %}>{{ q.option2 }}</li>{% endif %}{% if q.option3 %}<li{% if q.correct == 3 %} class="ok"{% endif %}>{{ q.option3 }}</li>{% endif %}{% if q.option4 %}<li{% if q.correct == 4 %} class="ok"{% endif %}>{{ q.option4 }}</li>{% endif %}</ol>
+    {% if q.origin.exam %}<footer class="muted">منشأ: آزمون «{{ q.origin.exam.title }}»</footer>{% endif %}
+  </article>
+  {% empty %}<p class="card muted">سؤالی با این فیلتر پیدا نشد.</p>{% endfor %}
+
+  {% if page.paginator.num_pages > 1 %}<div class="pager">
+    {% if page.has_previous %}<a class="btn sm line" href="?{% if qs %}{{ qs }}&{% endif %}page={{ page.previous_page_number }}">قبلی</a>{% endif %}
+    <span class="muted">صفحهٔ {{ page.number }} از {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn sm line" href="?{% if qs %}{{ qs }}&{% endif %}page={{ page.next_page_number }}">بعدی</a>{% endif %}</div>{% endif %}
+
+  {% if page.object_list %}<div class="card bulkbar" id="bulkbar" hidden><b>برای سؤال‌های انتخاب‌شده:</b>
+    <div class="actions" style="border:0;margin:0;padding:0">
+      <select name="exam" aria-label="آزمون مقصد"><option value="">آزمون مقصد…</option>{% for e in exams %}<option value="{{ e.pk }}"{% if target.pk == e.pk %} selected{% endif %}>{{ e.title }}</option>{% endfor %}</select>
+      <button class="btn sm" name="action" value="import">افزودن به آزمون</button></div>
+    <div class="actions" style="border:0;margin:0;padding:0">
+      <select name="category" aria-label="دسته‌بندی"><option value="">دسته‌بندی…</option>{% for c in cats %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}</select>
+      <button class="btn sm line" name="action" value="cat_add">افزودن دسته‌بندی</button><button class="btn sm line" name="action" value="cat_remove">برداشتن دسته‌بندی</button></div>
+    <div class="actions" style="border:0;margin:0;padding:0">
+      <input name="tags" placeholder="تگ (با ویرگول جدا کنید)" maxlength="400"><button class="btn sm line" name="action" value="tag_add">افزودن تگ</button>
+      <button class="btn sm danger" name="action" value="delete" onclick="return confirm('سؤال‌های انتخاب‌شده برای همیشه حذف شوند؟')">حذف</button></div></div>{% endif %}
+</form>
+<script>addEventListener("load",()=>window.renderMathInElement&&renderMathInElement(document.querySelector("main"),{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}]}))</script>
+{% endblock %}

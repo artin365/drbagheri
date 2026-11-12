@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% load static %}
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+{% endblock %}
+{% block content %}
+<div id="exam" data-csrf="{{ csrf_token }}" data-left="{{ seconds_left }}"
+ data-urls='{"answer":"{% url 'answer' a.pk %}","violation":"{% url 'violation' a.pk %}","submit":"{% url 'submit' a.pk %}","result":"{% url 'result' a.pk %}"}'>
+  <div class="top"><strong>{{ a.exam.title }}</strong><span id="timer" class="timer">--:--</span></div>
+  <div class="bar"><b id="bar"></b></div>
+  {% for q in questions %}
+  <section class="q card" data-qid="{{ q.pk }}" hidden>
+    <h2><span class="idx">{{ forloop.counter }}</span>{{ q.text }}</h2>
+    {% for n, t in q.opts %}<button type="button" class="opt" data-q="{{ q.pk }}" data-c="{{ n }}"><span class="b">{{ forloop.counter }}</span>{{ t }}</button>{% endfor %}
+  </section>{% endfor %}
+  <div class="nav"><button class="ghost" id="prev">قبلی</button><button class="btn" id="next">بعدی</button>
+    <button class="btn acc" id="finish">پایان و ثبت نهایی</button></div>
+  <div class="card sheet"><small>پاسخنامه (کلیک برای پرش به سؤال)</small>
+    <div class="dots">{% for q in questions %}<button class="dot" data-i="{{ forloop.counter0 }}" data-qid="{{ q.pk }}">{{ forloop.counter }}</button>{% endfor %}</div></div>
+  <div id="warn" class="overlay" hidden><div class="card"><h2>هشدار</h2><p id="warnmsg"></p><button class="btn acc" id="ok">متوجه شدم، ادامه</button></div></div>
+</div>
+{{ saved|json_script:"saved" }}
+<script src="{% static 'js/exam.js' %}"></script>
+{% endblock %}

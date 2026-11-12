@@ -1,0 +1,52 @@
+{% extends "panel_base.html" %}
+{% block head %}{% include "_katex.html" %}{% endblock %}
+{% block content %}
+<div class="ph"><h1>{% if exam %}ویرایش آزمون{% else %}آزمون جدید{% endif %}</h1>
+  <div>{% if exam %}<a class="btn sm line" href="{% url 'teacher_exam' exam.pk %}">نتایج</a>{% endif %}<a class="btn sm line" href="{% url 'teacher_exams' %}">همهٔ آزمون‌ها</a></div></div>
+
+<form method="post" class="card form">{% csrf_token %}
+  <h3>اطلاعات آزمون</h3>
+  {% for e in form.non_field_errors %}<em>{{ e }}</em>{% endfor %}
+  {% include "_field.html" with field=form.title %}
+  {% include "_field.html" with field=form.description %}
+  <div class="grid3">{% include "_field.html" with field=form.duration_minutes %}{% include "_field.html" with field=form.max_violations %}{% include "_field.html" with field=form.group %}</div>
+  {% if multi_group %}<p class="msg error">این آزمون قبلاً برای چند گروه تعریف شده بود؛ با ذخیره، فقط گروهی که اینجا انتخاب می‌کنید می‌ماند.</p>{% endif %}
+  <div class="grid3">{% include "_field.html" with field=form.shuffle_questions %}{% include "_field.html" with field=form.shuffle_options %}{% include "_field.html" with field=form.is_active %}</div>
+  <h3>اعلام نتیجه</h3>
+  <div class="grid3">{% include "_field.html" with field=form.result_mode %}
+    <div data-show-if="#id_result_mode=scheduled">{% include "_field.html" with field=form.results_release_at %}</div>
+    {% include "_field.html" with field=form.show_answers %}</div>
+  <div class="actions" style="border:0;padding:0"><button class="btn">ذخیره</button></div>
+</form>
+
+{% if exam %}
+<section class="card">
+  <div class="ph" style="margin:0 0 8px"><h3 style="margin:0">سؤال‌های ثابت <span class="muted">({{ fixed|length }} سؤال؛ همهٔ دانش‌آموزان همین‌ها را می‌بینند)</span></h3>
+    <div><a class="btn sm" href="{% url 'teacher_bank' %}?exam={{ exam.pk }}">+ افزودن از بانک سؤال</a>
+      <a class="btn sm line" href="{% url 'teacher_question_new' %}?exam={{ exam.pk }}">+ سؤال جدید</a></div></div>
+  {% for q in fixed %}<div class="qrow"><span class="idx">{{ forloop.counter }}</span>
+    <div class="qrow-t">{{ q.text|truncatechars:160 }}<br><span class="muted">گزینهٔ صحیح: {{ q.correct }}</span></div>
+    <form method="post" action="{% url 'teacher_exam_qremove' exam.pk q.pk %}" onsubmit="return confirm('این سؤال از آزمون برداشته شود؟')">{% csrf_token %}<button class="btn sm line">برداشتن</button></form></div>
+  {% empty %}<p class="muted">هنوز سؤال ثابتی نیست.</p>{% endfor %}
+</section>
+
+<section class="card">
+  <h3 style="margin-top:0">سؤال تصادفی از دسته‌بندی‌ها <span class="muted">(برای هر دانش‌آموز متفاوت)</span></h3>
+  {% for r in rules %}<div class="qrow"><div class="qrow-t"><b>{% if r.category %}<span class="cat" style="--h:{{ r.category.hue }}">{{ r.category.name }}</span>{% else %}کل بانک سؤال{% endif %}</b>
+      — {{ r.count }} سؤال تصادفی <span class="muted">(از {{ r.pool.count }} سؤال موجود)</span></div>
+    <form method="post" action="{% url 'teacher_rule_delete' exam.pk r.pk %}">{% csrf_token %}<button class="btn sm line">حذف</button></form></div>
+  {% empty %}<p class="muted">قاعده‌ای تعریف نشده است.</p>{% endfor %}
+  <form method="post" action="{% url 'teacher_rule_add' exam.pk %}" class="actions">{% csrf_token %}
+    <select name="category" aria-label="دسته‌بندی"><option value="">کل بانک سؤال ({{ bank_total }})</option>
+      {% for c in categories %}<option value="{{ c.pk }}">{{ c.name }} ({{ c.n }})</option>{% endfor %}</select>
+    <input type="number" name="count" min="1" value="1" style="width:90px" aria-label="تعداد" required>
+    <button class="btn sm">افزودن قاعده</button></form>
+</section>
+
+<section class="card danger-zone"><h3 style="margin-top:0">حذف آزمون</h3>
+  {% if attempts %}<p class="muted">این آزمون {{ attempts }} شرکت‌کننده دارد و حذف نمی‌شود؛ برای پنهان‌کردنش، تیک «فعال» را بردارید.</p>
+  {% else %}<form method="post" action="{% url 'teacher_exam_delete' exam.pk %}" onsubmit="return confirm('آزمون برای همیشه حذف شود؟')">{% csrf_token %}<button class="btn sm danger">حذف آزمون</button></form>{% endif %}
+</section>
+<script>addEventListener("load",()=>window.renderMathInElement&&renderMathInElement(document.querySelector("main"),{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}]}))</script>
+{% endif %}
+{% endblock %}

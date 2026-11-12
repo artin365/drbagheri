@@ -1,0 +1,20 @@
+{% extends "panel_base.html" %}
+{% block content %}
+<div class="ph"><h1>{% if q %}ویرایش سؤال{% else %}سؤال جدید{% endif %}</h1><a class="btn sm line" href="{% url 'teacher_bank' %}">بازگشت به بانک</a></div>
+<form method="post" class="card form">{% csrf_token %}
+  {% for e in form.non_field_errors %}<em>{{ e }}</em>{% endfor %}
+  {% include "_field.html" with field=form.text %}
+  <div class="grid2">{% include "_field.html" with field=form.option1 %}{% include "_field.html" with field=form.option2 %}
+    {% include "_field.html" with field=form.option3 %}{% include "_field.html" with field=form.option4 %}</div>
+  <div class="grid3">{% include "_field.html" with field=form.correct %}</div>
+  <div class="field"><label>{{ form.categories.label }}</label><div class="checks">{% for c in form.categories %}<label class="check">{{ c.tag }} {{ c.choice_label }}</label>{% endfor %}</div>
+    {% for e in form.categories.errors %}<em>{{ e }}</em>{% endfor %}
+    <small>هر سؤال می‌تواند همزمان چند دسته‌بندی داشته باشد، مثلاً «سخت» و «نهایی». دسته‌بندی‌های تازه را در صفحهٔ بانک بسازید.</small></div>
+  <div class="field"><label for="id_tags">{{ form.tags.label }}</label>{{ form.tags }}
+    <datalist id="taglist">{% for t in all_tags %}<option value="{{ t.name }}">{% endfor %}</datalist>
+    <small>{{ form.tags.help_text }}</small>{% for e in form.tags.errors %}<em>{{ e }}</em>{% endfor %}</div>
+  {% if form.exam %}{% include "_field.html" with field=form.exam %}{% endif %}
+  <div class="actions" style="border:0;padding:0"><button class="btn">ذخیره</button>{% if not q %}<button class="btn line" name="again" value="1">ذخیره و سؤال بعدی</button>{% endif %}</div>
+</form>
+<script>document.getElementById("id_tags").setAttribute("list","taglist")</script>
+{% endblock %}

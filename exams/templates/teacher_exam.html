@@ -1,0 +1,24 @@
+{% extends "panel_base.html" %}{% load l10n %}
+{% block head %}{% include "_katex.html" %}{% endblock %}
+{% block content %}
+<div class="ph"><h1>{{ e.title }}</h1>
+  <div><a class="btn sm" href="{% url 'teacher_xlsx' e.pk %}">دریافت اکسل</a><a class="btn sm line" href="{% url 'teacher_exam_edit' e.pk %}">ویرایش آزمون</a><a class="btn sm line" href="{% url 'teacher_home' %}">بازگشت</a></div></div>
+<div class="kpis">
+  <div class="kpi"><b>{{ agg.n }}</b><span>پایان‌یافته</span></div><div class="kpi"><b>{{ agg.avg|floatformat:1|default:"—" }}</b><span>میانگین ٪</span></div>
+  <div class="kpi"><b>{{ agg.hi|floatformat:1|default:"—" }}</b><span>بیشترین</span></div><div class="kpi"><b>{{ agg.lo|floatformat:1|default:"—" }}</b><span>کمترین</span></div></div>
+<section class="card">
+  <div class="toolbar"><input id="q" type="search" placeholder="جست‌وجوی نام یا نام کاربری…" aria-label="جست‌وجو">
+    <select id="st" aria-label="فیلتر وضعیت"><option value="">همهٔ وضعیت‌ها</option><option value="submitted">ثبت‌شده</option><option value="expired">پایان زمان</option><option value="disqualified">ابطال‌شده</option><option value="in_progress">در حال برگزاری</option><option value="absent">شرکت نکرده</option></select>
+    <span class="muted"><span id="cnt"></span> ردیف</span></div>
+  <div class="tblw"><table data-table><thead><tr><th data-k>نام</th><th data-k>نام خانوادگی</th><th data-k>نام کاربری</th><th data-k>درصد</th><th>درست / کل</th><th>وضعیت</th><th data-k>تخلف</th><th data-k>شروع</th><th></th></tr></thead><tbody>
+  {% for a in attempts %}<tr data-status="{{ a.status }}"><td>{{ a.user.first_name|default:"—" }}</td><td>{{ a.user.last_name|default:"—" }}</td><td>{{ a.user.username }}</td>
+  <td data-v="{% if a.score is None %}-1{% else %}{{ a.score|stringformat:'f' }}{% endif %}"><b>{{ a.score|floatformat:"-1"|default:"—" }}</b></td>
+  <td>{{ a.correct }} / {{ a.total }}</td><td><span class="badge {{ a.status }}">{{ a.get_status_display }}</span></td><td>{{ a.violations }}</td>
+  <td data-v="{{ a.started_at|date:'U' }}">{{ a.started_at|date:"Y/m/d H:i" }}</td><td><a href="{% url 'teacher_attempt' a.pk %}">جزئیات</a></td></tr>{% endfor %}
+  {% for u in absent %}<tr data-status="absent"><td>{{ u.first_name|default:"—" }}</td><td>{{ u.last_name|default:"—" }}</td><td>{{ u.username }}</td><td data-v="-2">—</td><td>—</td><td><span class="badge absent">شرکت نکرد</span></td><td>—</td><td data-v="0">—</td><td></td></tr>{% endfor %}
+  </tbody></table></div></section>
+{% if qstats %}<section class="card"><h3 style="margin-top:0">درصد پاسخ صحیح هر سؤال (سخت‌ترین‌ها اول)</h3><div class="tblw"><table>
+  <tr><th>سؤال</th><th>دفعات پرسیده‌شده</th><th>درست ٪</th></tr>
+  {% for r in qstats %}<tr><td style="white-space:normal">{{ r.q.text|truncatechars:90 }}</td><td>{{ r.asked }}</td><td>{{ r.pct }}</td></tr>{% endfor %}</table></div></section>{% endif %}
+<script>addEventListener("load",()=>window.renderMathInElement&&renderMathInElement(document.querySelector("main"),{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}]}))</script>
+{% endblock %}

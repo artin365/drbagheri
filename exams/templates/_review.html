@@ -1,0 +1,4 @@
+<h2 class="sec">مرور پاسخ‌ها</h2>
+{% for r in rows %}<section class="card"><h3 class="qt"><span class="idx">{{ forloop.counter }}</span>{{ r.q.text }}</h3>
+{% for n, t, ok, sel in r.opts %}<div class="opt static {% if ok %}ok{% elif sel %}bad{% endif %}"><span class="b">{{ n }}</span>{{ t }}{% if ok %} ✓{% elif sel %} (پاسخ انتخاب‌شده){% endif %}</div>{% endfor %}
+{% if r.sel is None %}<p class="muted">بی‌پاسخ</p>{% endif %}</section>{% endfor %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="post" class="card auth"><h2>{{ title }}</h2>{% csrf_token %}
+  {% for f in form %}<label>{{ f.label }}{{ f }}{% if f.help_text %}<small>{{ f.help_text|safe }}</small>{% endif %}
+  {% for e in f.errors %}<em>{{ e }}</em>{% endfor %}</label>{% endfor %}
+  {% for e in form.non_field_errors %}<em>{{ e }}</em>{% endfor %}
+  <button class="btn acc">{{ btn }}</button>
+  <p class="muted"><a href="{% url 'register' %}">حساب ندارید؟ ثبت‌نام</a> · <a href="{% url 'login' %}">ورود</a></p>
+</form>
+{% endblock %}

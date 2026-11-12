@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block head %}{% include "_katex.html" %}{% endblock %}
+{% block content %}
+<section class="card score"><p>{{ a.exam.title }}</p>
+{% if open %}
+  <div class="big">{{ a.score|floatformat:"-1" }}٪</div>
+  <span class="badge {{ a.status }}">{{ a.get_status_display }}</span>
+  <div class="stats"><div><b>{{ a.correct }}</b>درست</div><div><b>{{ wrong }}</b>غلط</div><div><b>{{ blank }}</b>بی‌پاسخ</div><div><b>{{ a.total }}</b>کل سؤال‌ها</div></div>
+  <p class="muted">تخلف ثبت‌شده: {{ a.violations }} از {{ a.exam.max_violations }}</p>
+{% else %}
+  <div class="big">✓</div><span class="badge submitted">پاسخ‌های شما ثبت شد</span>
+  <p>نتیجه در تاریخ {{ a.exam.results_release_at|date:"Y/m/d" }} ساعت {{ a.exam.results_release_at|time:"H:i" }} اعلام می‌شود.</p>
+{% endif %}
+  <p class="muted">هر حساب فقط یک‌بار در این آزمون شرکت می‌کند.</p>
+</section>
+{% if rows %}{% include "_review.html" %}{% endif %}
+{% if log %}<section class="card"><h3>سابقهٔ رویدادها</h3>
+  <ul class="log">{% for v in log %}<li><span>{{ v.created_at|time:"H:i:s" }}</span> {{ v.get_kind_display }}</li>{% endfor %}</ul></section>{% endif %}
+<a class="btn" href="{% url 'home' %}">بازگشت</a>
+<script>addEventListener("load",()=>window.renderMathInElement&&renderMathInElement(document.querySelector("main"),{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}]}))</script>
+{% endblock %}

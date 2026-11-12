@@ -1,0 +1,9 @@
+{% extends "panel_base.html" %}
+{% block content %}
+<div class="ph"><h1>دانش‌آموزان</h1><a class="btn sm line" href="{% url 'teacher_groups' %}">مدیریت گروه‌ها</a></div>
+<section class="card"><div class="toolbar"><input id="q" type="search" placeholder="جست‌وجوی نام، نام کاربری یا گروه…" aria-label="جست‌وجو"><span class="muted"><span id="cnt"></span> نفر</span></div>
+<div class="tblw"><table data-table><thead><tr><th data-k>نام</th><th data-k>نام خانوادگی</th><th data-k>نام کاربری</th><th>گروه‌ها</th><th data-k>آزمون‌ها</th></tr></thead><tbody>
+{% for u in users %}<tr><td>{{ u.first_name|default:"—" }}</td><td>{{ u.last_name|default:"—" }}</td><td>{{ u.username }}</td>
+<td>{% for g in u.groups.all %}<a class="chip" href="{% url 'teacher_group' g.pk %}">{{ g.name }}</a> {% empty %}<span class="muted">بدون گروه</span>{% endfor %}</td><td>{{ u.n }}</td></tr>
+{% empty %}<tr><td colspan="5" class="muted">هنوز دانش‌آموزی ثبت‌نام نکرده است.</td></tr>{% endfor %}</tbody></table></div></section>
+{% endblock %}

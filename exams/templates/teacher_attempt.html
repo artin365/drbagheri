@@ -1,0 +1,13 @@
+{% extends "panel_base.html" %}
+{% block head %}{% include "_katex.html" %}{% endblock %}
+{% block content %}
+<div class="ph"><h1>{{ a.user.get_full_name|default:a.user.username }}</h1><a class="btn sm line" href="{% url 'teacher_exam' a.exam_id %}">بازگشت به نتایج</a></div>
+<section class="card score"><p>{{ a.exam.title }} · {{ a.user.username }}</p>
+  <div class="big">{{ a.score|floatformat:"-1"|default:"—" }}٪</div><span class="badge {{ a.status }}">{{ a.get_status_display }}</span>
+  <div class="stats"><div><b>{{ a.correct }}</b>درست</div><div><b>{{ wrong }}</b>غلط</div><div><b>{{ blank }}</b>بی‌پاسخ</div><div><b>{{ a.total }}</b>کل سؤال‌ها</div></div>
+  <p class="muted">تخلف: {{ a.violations }} از {{ a.exam.max_violations }} · شروع {{ a.started_at|date:"Y/m/d H:i" }}</p></section>
+{% if log %}<section class="card"><h3 style="margin-top:0">سابقهٔ رویدادها</h3><ul class="log">
+  {% for v in log %}<li><span>{{ v.created_at|time:"H:i:s" }}</span> {{ v.get_kind_display }} · {{ v.ip|default:"" }}</li>{% endfor %}</ul></section>{% endif %}
+{% include "_review.html" %}
+<script>addEventListener("load",()=>window.renderMathInElement&&renderMathInElement(document.querySelector("main"),{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}]}))</script>
+{% endblock %}

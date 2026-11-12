@@ -1,0 +1,9 @@
+{% extends "panel_base.html" %}
+{% block content %}
+<div class="ph"><h1>گروه‌ها (کلاس‌ها)</h1></div>
+<p class="muted">هر گروه یک کلاس است. گروه را بسازید، وارد صفحه‌اش شوید و همان‌جا دانش‌آموزان را اضافه کنید؛ بعد در ساخت آزمون فقط اسم گروه را انتخاب می‌کنید.</p>
+<section class="card"><form method="post" class="toolbar">{% csrf_token %}<input name="name" placeholder="نام گروه جدید، مثلاً «نهم الف»" required maxlength="150"><button class="btn sm">ساخت گروه</button></form>
+<div class="tblw"><table><tr><th>گروه</th><th>دانش‌آموز</th><th>آزمون</th><th></th></tr>
+{% for g in groups %}<tr><td><b>{{ g.name }}</b></td><td>{{ g.n }}</td><td>{{ g.exams }}</td><td><a class="btn sm" href="{% url 'teacher_group' g.pk %}">مدیریت اعضا</a></td></tr>
+{% empty %}<tr><td colspan="4" class="muted">هنوز گروهی نیست.</td></tr>{% endfor %}</table></div></section>
+{% endblock %}
